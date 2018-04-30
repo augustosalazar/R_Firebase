@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View,FlatList } from 'react-native';
+import { StyleSheet, Text, View,FlatList,Card,CardItem , Button, Modal,TouchableHighlight, Alert,TextInput} from 'react-native';
 
 import * as firebase from 'firebase';
 
@@ -19,9 +19,19 @@ export default class App extends React.Component {
   constructor(){
     super();
     this.state = {
-
+      text:'',
+      modalVisible: false,
     }
     this.itemRef = this.getRef().child('items');
+  }
+
+  _onPress = (key) => {
+    this.itemRef.child(key).remove();
+    
+};
+
+  setModalVisible(visible) {
+    this.setState({modalVisible: visible});
   }
 
   getRef(){
@@ -50,18 +60,68 @@ export default class App extends React.Component {
     });
   }
 
+
+
   render() {
     return (
       <View style={styles.container}>
-        <Text> Hello </Text>
+
+     <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalVisible}
+          onRequestClose={() => {
+            this.setState({text:''})
+          }}>
+          <View style={styles.container}>
+            <View>
+              <Text>New Item</Text>
+              <TextInput
+                value={this.state.text}
+                placeholder='Text goes here'
+                onChangeText = {(value) => this.setState({text:value})}
+              />
+              <TouchableHighlight
+                onPress={() => {
+                  this.itemRef.push({title: this.state.text})
+                  this.setModalVisible(!this.state.modalVisible);
+                }}>
+                <Text>Save Item</Text>
+              </TouchableHighlight>
+
+
+              <TouchableHighlight
+                onPress={() => {
+                  this.setModalVisible(!this.state.modalVisible);
+                }}>
+                <Text>Cancel</Text>
+              </TouchableHighlight>
+
+            </View>
+          </View>
+        </Modal>
+
+
+
+       <Text> Hello </Text>
         <FlatList
           data={this.state.itemDataSource}
           renderItem={({item}) =>
-            <Text style={{margin:10}}> {item._key} {item.title}</Text>
+           <TouchableHighlight
+            onPress={() => this._onPress(item._key)}>
+            <View>
+            <Text style={{margin:10}}>{item.title}</Text>
+            </View>
+            </TouchableHighlight>
           }
-          keyExtractor={(item, index) =>String(item.key)}
+          keyExtractor={(item, index) =>String(item._key)}
           />
-          <Text> Good Bye </Text>
+          <Button 
+            title="Add Item"
+            onPress={() => {
+              this.setModalVisible(!this.state.modalVisible);
+            }}>
+            </Button>
       </View>
     );
   }
